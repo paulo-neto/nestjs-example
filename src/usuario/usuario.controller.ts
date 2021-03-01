@@ -4,6 +4,7 @@ import { CreateUsuarioDTO } from './dto/create-usuario.dto';
 
 @Controller('usuario')
 export class UsuarioController {
+    
     constructor(private usuariosService: UsuarioService){}
 
     @Get()
