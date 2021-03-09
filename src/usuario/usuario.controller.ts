@@ -3,6 +3,7 @@ import { UsuarioService } from './usuario.service';
 import { UsuarioDTO } from './dto/create-usuario.dto';
 import { NestResponseBuilder } from 'src/core/http/nest-response-builder';
 import { NestResponse } from 'src/core/http/nest-response';
+import { NotFoundException } from '@nestjs/common';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -21,6 +22,18 @@ export class UsuarioController {
         return usuario;
     }
 
+    @Get('/login/:login')
+    public getByLogin(@Param('login') login): UsuarioDTO {
+        const usuario = this.usuariosService.buscaPorLogin(login);
+        if (!usuario) {
+            throw new NotFoundException({
+                statusCode: HttpStatus.NOT_FOUND,
+                message: 'Usuário não encontrado!!'
+            });
+        }
+        return usuario;
+    }
+
     @Post()
     public addUsuario(@Body() usuarioNovo: UsuarioDTO): NestResponse {
         const usuarioCriado = this.usuariosService.addUsuario(usuarioNovo);
@@ -34,9 +47,15 @@ export class UsuarioController {
     }
 
     @Put(':usuarioId')
-    public editUsuario(@Body() usuario: UsuarioDTO, @Param('usuarioId') idUsuario: number) {
-        const retorno = this.usuariosService.editUsuario(usuario, idUsuario);
-        return retorno;
+    public editUsuario(@Body() usuario: UsuarioDTO, @Param('usuarioId') usuarioId: number): NestResponse {
+        const usuarioEditado = this.usuariosService.editUsuario(usuario, usuarioId);
+        return new NestResponseBuilder()
+        .comStatus(HttpStatus.CREATED)
+        .comHeaders({
+            'Location': `/users/${usuarioEditado.login}`
+        })
+        .comBody(usuarioEditado)
+        .build();
     }
 
     @Delete(':usuarioId')

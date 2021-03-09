@@ -1,10 +1,10 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { Injectable, HttpException, NotFoundException, HttpStatus } from '@nestjs/common';
 import { USUARIOS } from '../mock/usuarios.mock';
-import { resolve, promises } from 'dns';
 import { UsuarioDTO } from './dto/create-usuario.dto';
 
 @Injectable()
 export class UsuarioService {
+
     usuarios = USUARIOS;
 
 
@@ -26,9 +26,10 @@ export class UsuarioService {
     }
 
     public editUsuario(usuario: UsuarioDTO, usuarioId: number): UsuarioDTO {
-        const index = this.usuarios.findIndex(usu => usu.id === usuarioId);
+        const id = Number(usuarioId);
+        const index = this.usuarios.findIndex(usu => usu.id === id);
         if (index === -1) {
-            throw new HttpException('Usuário não encontrado!!', 404);
+            this.getNotFoundException();
         }
         this.usuarios.splice(index, 1);
         usuario.id = usuarioId;
@@ -40,8 +41,20 @@ export class UsuarioService {
         let id = Number(usuarioId);
         const index = this.usuarios.findIndex(usu => usu.id === usuarioId);
         if (index === -1) {
-            throw new HttpException('Usuário não encontrado!!', 404);
+            this.getNotFoundException();
         }
         this.usuarios.splice(index, 1);
+    }
+
+    public buscaPorLogin(login: string) {
+        const usuario = this.usuarios.find(usu => usu.login === login);
+        return usuario;
+    }
+
+    private getNotFoundException(){
+        throw new NotFoundException({
+            statusCode: HttpStatus.NOT_FOUND,
+            message: 'Usuário não encontrado!!'
+        });
     }
 }
