@@ -1,59 +1,47 @@
 import { Injectable, HttpException } from '@nestjs/common';
-import { USUARIOS }     from '../mock/usuarios.mock';
+import { USUARIOS } from '../mock/usuarios.mock';
 import { resolve, promises } from 'dns';
+import { UsuarioDTO } from './dto/create-usuario.dto';
 
 @Injectable()
 export class UsuarioService {
     usuarios = USUARIOS;
 
 
-    getAll(): Promise<any>{
-        return new Promise(resolve => {
-            resolve(this.usuarios);
-        });
+    public getAll(): Array<UsuarioDTO> {
+        return this.usuarios;
     }
 
-    getById(usuarioId): Promise<any>{
+    public getById(usuarioId: number): UsuarioDTO {
+        const usuario = this.usuarios.find(usu => usu.id === usuarioId);
+        if (!usuario) {
+            throw new HttpException('Usuário não encontrado!!', 404);
+        }
+        return usuario;
+    }
+
+    public addUsuario(usuario: UsuarioDTO): UsuarioDTO {
+        this.usuarios.push(usuario);
+        return usuario;
+    }
+
+    public editUsuario(usuario: UsuarioDTO, usuarioId: number): UsuarioDTO {
+        const index = this.usuarios.findIndex(usu => usu.id === usuarioId);
+        if (index === -1) {
+            throw new HttpException('Usuário não encontrado!!', 404);
+        }
+        this.usuarios.splice(index, 1);
+        usuario.id = usuarioId;
+        this.usuarios.push(usuario);
+        return usuario;
+    }
+
+    public removeUsuario(usuarioId: number) {
         let id = Number(usuarioId);
-        return new Promise(resolve =>{
-            const usuario = this.usuarios.find(usu => usu.id === id);
-            if(!usuario){
-                throw new HttpException('Usuário não encontrado!!',404);
-            }
-            resolve(usuario);
-        });
-    }
-
-    addUsuario(usuario): Promise<any>{
-        return new Promise(resolve => {
-            this.usuarios.push(usuario);
-            resolve(this.usuarios);
-        })
-    }
-
-    editUsuario(usuario, usuarioId): Promise<any>{
-        let id = Number(usuarioId);
-        return new Promise(resolve => {
-            const index = this.usuarios.findIndex(usu => usu.id === id);
-            if(index === -1){
-                throw new HttpException('Usuário não encontrado!!',404);
-            }
-            this.usuarios.splice(index,1);
-            usuario.id = id;
-            this.usuarios.push(usuario);
-            resolve(this.usuarios);
-        });
-    }
-
-    removeUsuario(usuarioId): Promise<any>{
-        let id = Number(usuarioId);
-        return new Promise(resolve => {
-            const index = this.usuarios.findIndex(usu => usu.id === id);
-            if(index === -1){
-                throw new HttpException('Usuário não encontrado!!',404);
-            }
-            this.usuarios.splice(index,1);
-            resolve(this.usuarios);
-        });
+        const index = this.usuarios.findIndex(usu => usu.id === usuarioId);
+        if (index === -1) {
+            throw new HttpException('Usuário não encontrado!!', 404);
+        }
+        this.usuarios.splice(index, 1);
     }
 }

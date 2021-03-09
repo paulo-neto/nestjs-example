@@ -1,39 +1,46 @@
-import { Controller, Get, Param, Post, Body, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Post, Body, Put, Delete, HttpStatus } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
-import { CreateUsuarioDTO } from './dto/create-usuario.dto';
+import { UsuarioDTO } from './dto/create-usuario.dto';
+import { NestResponseBuilder } from 'src/core/http/nest-response-builder';
+import { NestResponse } from 'src/core/http/nest-response';
 
 @Controller('usuario')
 export class UsuarioController {
-    
-    constructor(private usuariosService: UsuarioService){}
+
+    constructor(private usuariosService: UsuarioService) { }
 
     @Get()
-    async getAll(){
-        const retorno = await this.usuariosService.getAll();
+    public getAll(): Array<UsuarioDTO> {
+        const retorno = this.usuariosService.getAll();
         return retorno;
     }
 
     @Get(':usuarioId')
-    async getById(@Param('usuarioId') usuarioId){
-        const usuario = await this.usuariosService.getById(usuarioId);
+    public getById(@Param('usuarioId') usuarioId): UsuarioDTO {
+        const usuario = this.usuariosService.getById(usuarioId);
         return usuario;
     }
 
     @Post()
-    async addUsuario(@Body() usuarioNovo:CreateUsuarioDTO){
-        const retorno = await this.usuariosService.addUsuario(usuarioNovo);
-        return retorno;
+    public addUsuario(@Body() usuarioNovo: UsuarioDTO): NestResponse {
+        const usuarioCriado = this.usuariosService.addUsuario(usuarioNovo);
+        return new NestResponseBuilder()
+            .comStatus(HttpStatus.CREATED)
+            .comHeaders({
+                'Location': `/users/${usuarioCriado.login}`
+            })
+            .comBody(usuarioCriado)
+            .build();
     }
 
     @Put(':usuarioId')
-    async editUsuario(@Body() usuario: CreateUsuarioDTO, @Param('usuarioId')idUsuario:number){
-        const retorno = this.usuariosService.editUsuario(usuario,idUsuario);
+    public editUsuario(@Body() usuario: UsuarioDTO, @Param('usuarioId') idUsuario: number) {
+        const retorno = this.usuariosService.editUsuario(usuario, idUsuario);
         return retorno;
     }
 
     @Delete(':usuarioId')
-    async removeUsuario(@Param('usuarioId') usuarioId: number){
-        const retorno = await this.usuariosService.removeUsuario(usuarioId);
-        return retorno;
+    public removeUsuario(@Param('usuarioId') usuarioId: number) {
+        this.usuariosService.removeUsuario(usuarioId);
     }
 }
