@@ -39,7 +39,7 @@ export class UsuarioService {
 
     public removeUsuario(usuarioId: number) {
         let id = Number(usuarioId);
-        const index = this.usuarios.findIndex(usu => usu.id === usuarioId);
+        const index = this.usuarios.findIndex(usu => usu.id === id);
         if (index === -1) {
             this.getNotFoundException();
         }
